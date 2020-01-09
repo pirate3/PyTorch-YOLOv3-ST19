@@ -1,4 +1,4 @@
-运行命令例：
+运行测试命令例：
 python test.py --img_path Image_test/ --anno_path Anno_test/ --weights_path weights/yolov3_ckpt_54.pth
 
 --img_path 测试照片文件夹路径
