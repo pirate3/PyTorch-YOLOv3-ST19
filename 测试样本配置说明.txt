@@ -1,8 +1,17 @@
+运行命令例：
+python test.py --img_path Image_test/ --anno_path Anno_test/ --weights_path weights/yolov3_ckpt_54.pth
 
+--img_path 测试照片文件夹路径
+--anno_path 测试对应标签文件夹路径
+--weights_path 网络参数文件路径
+
+
+========== 忽略此部分内容 2020.1.9 ===================================
 1.修改配置文件（config/st19.data文件）
 	a) 修改valid=测试集图片名文件完整路径（含文件名）
 	b) 修改validImagesPath=测试集图片所在文件夹目录（以/结束）
 	c) 修改validLabelsPath=测试集标注文件所在文件夹目录（以/结束）
 	其它配置不变
-	
+
 2.运行test.py进行测试，查看测试mAP结果
+=====================================================================
