@@ -34,12 +34,10 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
-    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
+    for batch_i, (img_names, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
 
         # Extract labels
         labels += targets[:, 1].tolist()
-        #print("targets：", targets)
-        #print("labels：", labels)
         # Rescale target
         targets[:, 2:] = xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
@@ -51,34 +49,40 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
         sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
-        #print("sample_metrics：", sample_metrics)
 
     # Concatenate sample statistics
     true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
-    
-    #print("pred_scores：", pred_scores)
-    #print("pred_labels：", pred_labels)
-    #print("len(pred_labels)：", len(pred_labels))
+
     precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
-    
+
     # 测试结果写文件
-    core_pred = []
-    coreless_pred = []
-    for i in range(len(pred_labels)):
-        if(pred_labels[i] == 0):
-            core_pred.append([pred_labels[i], pred_scores[i]])
-        else:
-            coreless_pred.append([pred_labels[i], pred_scores[i]])
-            
-    #print("core_pred", core_pred)
-    #print("coreless_pred", coreless_pred)
-    
+    core_pred = ""
+    coreless_pred = ""
+    for i in range(len(img_names)):
+        img_name = img_names[i]
+        pre_outs = outputs[i]
+        for pre_out in pre_outs:
+            pre_out_class = pre_out[6]
+            pre_out_line = img_name \
+                           + " " + "{:.3f}".format(pre_out[5]) \
+                           + " " + "{:.1f}".format(pre_out[0]) \
+                           + " " + "{:.1f}".format(pre_out[1]) \
+                           + " " + "{:.1f}".format(pre_out[2]) \
+                           + " " + "{:.1f}".format(pre_out[3]) \
+                           + "\n"
+            if(pre_out_class == 0):
+                core_pred += pre_out_line
+            else:
+                coreless_pred += pre_out_line
+
     core_pred_path = path[3] + "det_test_带电芯充电宝.txt"
     coreless_pred_path = path[3] + "det_test_不带电芯充电宝.txt"
-    
-    np.savetxt(core_pred_path, core_pred, fmt="%.4f")
-    np.savetxt(coreless_pred_path, coreless_pred, fmt="%.4f")
-        
+
+    with open(core_pred_path, "w") as file:
+        file.writelines(core_pred)
+    with open(coreless_pred_path, "w") as file:
+        file.writelines(coreless_pred)
+
     return precision, recall, AP, f1, ap_class
 
 

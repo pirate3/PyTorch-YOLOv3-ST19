@@ -92,8 +92,6 @@ class ListDataset(Dataset):
 
     def __getitem__(self, index):
 
-        img_name = self.name_list[index % len(self.name_list)].rstrip()
-
         # ---------
         #  Image
         # ---------
@@ -181,7 +179,7 @@ class ListDataset(Dataset):
             if np.random.random() < 0.5:
                 img, targets = horisontal_flip(img, targets)
 
-        return img_name, img, targets
+        return img_path, img, targets
 
     def collate_fn(self, batch):
         paths, imgs, targets = list(zip(*batch))
